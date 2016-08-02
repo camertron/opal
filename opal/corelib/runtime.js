@@ -508,6 +508,9 @@
     // @property $$pre prepended modules
     module.$$pre = [];
 
+    // @property $$pre prepended modules
+    module.$$methods = {};
+
     // initialize the name with nil
     module.$$name = nil;
 
@@ -1657,6 +1660,10 @@
   // Define method on a module or class (see Opal.def).
   Opal.defn = function(obj, jsid, body) {
     obj.$$proto[jsid] = body;
+
+    // add it to the bag of methods
+    obj.$$methods[jsid] = body;
+
     // for super dispatcher, etc.
     body.$$owner = obj;
 
