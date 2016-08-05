@@ -2,8 +2,6 @@ require 'corelib/comparable'
 require 'corelib/regexp'
 
 class String < `String`
-  include Comparable
-
   `def.$$is_string = true`
 
   def __id__
@@ -1715,6 +1713,8 @@ class String < `String`
       raise NotImplementedError
     end
   end
+
+  include Comparable
 end
 
 Symbol = String
