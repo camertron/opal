@@ -879,6 +879,32 @@
     }
   };
 
+  Opal.has_cyclic_dep = function has_cyclic_dep(base_id, deps, prop, seen) {
+    var i, dep_id, dep, sub_deps;
+
+    for (i = deps.length - 1; i >= 0; i--) {
+      dep = deps[i];
+      dep_id = dep.$$id;
+
+      if (seen[dep_id]) {
+        continue;
+      }
+      seen[dep_id] = true;
+
+      if (dep_id === base_id) {
+        return true;
+      }
+
+      sub_deps = dep[prop];
+
+      if (has_cyclic_dep(base_id, sub_deps, prop, seen)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   // The actual inclusion of a module into a class.
   //
   // ## Class `$$parent` and `iclass`
@@ -905,6 +931,10 @@
       if (includer.$$inc[i] === module) {
         return;
       }
+    }
+
+    if ( Opal.has_cyclic_dep(includer.$$id, [module], '$$inc', {}) ) {
+      throw Opal.ArgumentError.$new('cyclic include detected')
     }
 
     includer.$$inc.push(module);
@@ -943,6 +973,10 @@
       if (prepender.$$pre[i] === module) {
         return;
       }
+    }
+
+    if ( Opal.has_cyclic_dep(prepender.$$id, [module], '$$pre', {}) ) {
+      throw Opal.ArgumentError.$new('cyclic prepend detected')
     }
 
     prepender.$$pre.push(module);
