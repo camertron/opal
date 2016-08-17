@@ -1838,6 +1838,7 @@
     }
 
     Opal.add_stub_for(obj.$$proto, jsid);
+    delete obj.$$methods[jsid];
 
     if (obj.$$is_singleton) {
       if (obj.$$proto.$singleton_method_undefined && !obj.$$proto.$singleton_method_undefined.$$stub) {
