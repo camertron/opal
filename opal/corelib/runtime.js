@@ -508,7 +508,7 @@
     // @property $$pre prepended modules
     module.$$pre = [];
 
-    // @property $$pre prepended modules
+    // @property $$methods the methods defined in the module/class
     module.$$methods = {};
 
     // initialize the name with nil
