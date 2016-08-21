@@ -66,14 +66,14 @@ module Opal
 
       def super_method_invocation
         def_scope = containing_def_scope
-        method_jsid = def_scope.mid.to_s
+        method_id = def_scope.mid.to_s
         current_func = def_scope.identify!
 
         if def_scope.defs
           class_name = def_scope.parent.name ? "$#{def_scope.parent.name}" : 'self.$$class.$$proto'
-          "Opal.find_super_dispatcher(self, '#{method_jsid}', #{current_func}, #{defined_check_param}, #{class_name})"
+          "Opal.find_super_dispatcher(self, '#{method_id}', #{current_func}, #{defined_check_param}, #{class_name})"
         else
-          "Opal.find_super_dispatcher(self, '#{method_jsid}', #{current_func}, #{defined_check_param})"
+          "Opal.find_super_dispatcher(self, '#{method_id}', #{current_func}, #{defined_check_param})"
         end
       end
 
