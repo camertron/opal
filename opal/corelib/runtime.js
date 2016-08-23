@@ -447,6 +447,8 @@
     //                    the last included klass
     klass.$$parent = superclass;
 
+    klass.$$entry = klass;
+
     // Every class gets its own constant scope, inherited from current scope
     Opal.create_scope(base.$$scope, klass, name);
 
@@ -689,6 +691,8 @@
     //   the last included module
     module.$$parent = superclass;
 
+    module.$$entry = module;
+
     return module;
   };
 
@@ -743,6 +747,7 @@
     klass = Opal.setup_class_object(null, alloc, superclass.$$name, superclass.constructor);
     klass.$$super  = superclass;
     klass.$$parent = superclass;
+    klass.$$entry  = klass;
 
     // The singleton_class retains the same scope as the original class
     Opal.create_scope(object.$$scope, klass);
@@ -766,6 +771,7 @@
 
     klass.$$super  = superclass;
     klass.$$parent = superclass;
+    klass.$$entry  = klass;
     klass.$$class  = superclass.$$class;
     klass.$$scope  = superclass.$$scope;
     klass.$$proto  = object;
@@ -951,6 +957,7 @@
     iclass = {
       $$name:   module.$$name,
       $$proto:  module.$$proto,
+      $$methods: module.$$methods,
       $$parent: includer.$$parent,
       $$module: module,
       $$iclass: true
@@ -996,15 +1003,16 @@
     module.$$prepended_to.push(prepender);
     Opal._bridge(prepender, module);
 
-    // iclass = {
-    //   $$name:   module.$$name,
-    //   $$proto:  module.$$proto,
-    //   $$parent: prepender.$$parent,
-    //   $$module: module,
-    //   $$iclass: true
-    // };
-    //
-    // prepender.$$parent = iclass;
+    iclass = {
+      $$name:   module.$$name,
+      $$proto:  module.$$proto,
+      $$methods: module.$$methods,
+      $$parent: prepender.$$entry,
+      $$module: module,
+      $$iclass: true
+    };
+
+    prepender.$$entry = iclass;
 
     methods = Object.keys(module.$$methods);
 
@@ -1113,7 +1121,7 @@
 
   // Update `jsid` method cache of all classes / modules including `module`.
   Opal.update_method_cache = function(module, includer, jsid) {
-    var dest    = includer.$$proto;
+    var dest       = includer.$$proto;
     var found_body = Opal.find_method_body(includer, jsid);
 
     if (found_body) {
@@ -1347,7 +1355,7 @@
       dispatcher = Opal.find_obj_super_dispatcher(obj, mid, current_func);
     }
 
-    super_method = dispatcher['$' + mid];
+    super_method = dispatcher ? dispatcher['$' + mid] : Opal.stub_for('$' + mid);
 
     if (!defcheck && super_method.$$stub && Opal.Kernel.$method_missing === obj.$method_missing) {
       // method_missing hasn't been explicitly defined
@@ -1391,6 +1399,7 @@
 
   Opal.find_owning_class = function(klass, current_func) {
     var owner = current_func.$$owner;
+    klass = klass.$$entry || klass;
 
     while (klass) {
       // repeating for readability
@@ -1420,11 +1429,11 @@
   };
 
   Opal.find_super_func = function(owning_klass, jsid, current_func) {
-    var klass = owning_klass.$$parent;
+    var klass = (owning_klass.$$entry || owning_klass).$$parent;
 
     // now we can find the super
     while (klass) {
-      var working = klass.$$proto[jsid];
+      var working = klass.$$methods[jsid];
 
       if (working && working !== current_func) {
         // ok
@@ -1434,7 +1443,7 @@
       klass = klass.$$parent;
     }
 
-    return klass.$$proto;
+    return (klass && klass.$$methods);
   };
 
   // Used to return as an expression. Sometimes, we can't simply return from
@@ -1837,7 +1846,7 @@
     }
 
     Opal.add_stub_for(obj.$$proto, jsid);
-    delete obj.$$methods[jsid];
+    Opal.add_stub_for(obj.$$methods, jsid);
 
     if (obj.$$is_singleton) {
       if (obj.$$proto.$singleton_method_undefined && !obj.$$proto.$singleton_method_undefined.$$stub) {
@@ -2317,6 +2326,11 @@
   _Object.$$parent     = BasicObject;
   Module.$$parent      = _Object;
   Class.$$parent       = Module;
+
+  BasicObject.$$entry = BasicObject;
+  _Object.$$entry     = _Object;
+  Module.$$entry      = Module;
+  Class.$$entry       = Class;
 
   Opal.base                = _Object;
   BasicObject.$$scope      = _Object.$$scope = Opal;
