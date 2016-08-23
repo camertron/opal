@@ -428,7 +428,7 @@ class Module
         #{raise TypeError, "wrong argument type #{`mod`.class} (expected Module)"};
       }
 
-      var i, ii, ancestors = Opal.ancestors(self)
+      var i, ii, mod2, ancestors = Opal.ancestors(self)
 
       for (i = 0, ii = ancestors.length; i < ii; i++) {
         mod2 = ancestors[i];
