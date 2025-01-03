@@ -1482,22 +1482,24 @@
       return module.$$ancestors;
     }
 
-    var result = [], i, mods, length;
+    var result = new Set(), i, mods, length;
 
     for (i = 0, mods = own_ancestors(module), length = mods.length; i < length; i++) {
-      result.push(mods[i]);
+      result.add(mods[i]);
     }
 
     if (module.$$super) {
       for (i = 0, mods = $ancestors(module.$$super), length = mods.length; i < length; i++) {
-        result.push(mods[i]);
+        result.add(mods[i]);
       }
     }
 
-    module.$$ancestors_cache_version = Opal.const_cache_version;
-    module.$$ancestors = result;
+    var result_arr = Array.from(result);
 
-    return result;
+    module.$$ancestors_cache_version = Opal.const_cache_version;
+    module.$$ancestors = result_arr;
+
+    return result_arr;
   };
   Opal.ancestors = $ancestors;
 
